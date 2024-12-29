@@ -12,45 +12,68 @@ import { format, startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
 const { width } = Dimensions.get('window');
+const CHART_WIDTH = width - 80;
+const CHART_HEIGHT = 240;
+const CHART_PADDING = 20;
 const BAR_HEIGHT = 24;
-const PADDING = 16;
-const CHART_WIDTH = width - 120;
+const BAR_MARGIN = 8;
 
 export default function WeeklyProgress() {
-  const [goals, setGoals] = useState<any[]>([]);
+  const [weeklyGoals, setWeeklyGoals] = useState<any[]>([]);
   const [progressData, setProgressData] = useState<any[]>([]);
   const [currentDate] = useState(new Date());
 
   const categories = [
     'Health', 'Career', 'Finance', 'Family',
     'Social', 'Personal Growth', 'Recreation', 'Spirituality'
-  ];
+  ] as const;
 
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
-    const savedGoals = await getGoals();
-    const savedProgress = await getProgress();
+    // 仮の週間目標データ
+    const mockWeeklyGoals = [
+      { category: 'Health', goal: '毎日30分のジョギング' },
+      { category: 'Career', goal: '新しい技術の学習を3時間' },
+      { category: 'Finance', goal: '支出を記録する' },
+      { category: 'Family', goal: '家族との夕食を3回' },
+      { category: 'Social', goal: '友人とビデオ通話' },
+      { category: 'Personal Growth', goal: '本を1冊読む' },
+      { category: 'Recreation', goal: '趣味の時間を確保' },
+      { category: 'Spirituality', goal: '毎朝10分の瞑想' }
+    ];
+    setWeeklyGoals(mockWeeklyGoals);
     
-    setGoals(savedGoals);
+    // 1週間分の進捗データを生成
+    const start = startOfWeek(currentDate, { locale: ja });
+    const end = endOfWeek(currentDate, { locale: ja });
+    const days = eachDayOfInterval({ start, end });
     
-    // 仮のデータを生成（実際のアプリでは保存されたデータを使用）
-    const mockData = categories.map(category => ({
-      category,
-      progress: Math.floor(Math.random() * 100)
+    const mockData = days.map(day => ({
+      date: day,
+      progress: categories.map(category => ({
+        category,
+        progress: Math.floor(Math.random() * 100)
+      }))
     }));
     
     setProgressData(mockData);
   };
 
-  const getProgressColor = (progress: number) => {
-    if (progress >= 80) return '#4CAF50';
-    if (progress >= 60) return '#4A90E2';
-    if (progress >= 40) return '#FF9800';
-    if (progress >= 20) return '#FF5722';
-    return '#666666';
+  const getProgressColor = (category: typeof categories[number]) => {
+    const colors = {
+      'Health': '#FF6B6B',
+      'Career': '#4ECDC4',
+      'Finance': '#45B7D1',
+      'Family': '#96CEB4',
+      'Social': '#FFEEAD',
+      'Personal Growth': '#D4A5A5',
+      'Recreation': '#9B9B9B',
+      'Spirituality': '#A8E6CF'
+    } as const;
+    return colors[category] || '#666666';
   };
 
   const getWeekRange = () => {
@@ -59,32 +82,55 @@ export default function WeeklyProgress() {
     return `${format(start, 'M/d')} 〜 ${format(end, 'M/d')}`;
   };
 
-  const renderProgressBars = () => {
-    return progressData.map((data, index) => (
-      <View key={data.category} style={styles.barContainer}>
-        <Text style={styles.barLabel}>{data.category}</Text>
-        <View style={styles.barWrapper}>
-          <View 
-            style={[
-              styles.bar, 
-              { 
-                width: `${data.progress}%`,
-                backgroundColor: getProgressColor(data.progress)
-              }
-            ]} 
+  const renderStackedBars = () => {
+    return progressData.map((dayData, dayIndex) => {
+      let accumulatedWidth = 0;
+      const totalWidth = CHART_WIDTH - CHART_PADDING * 2;
+      const y = CHART_PADDING + (BAR_HEIGHT + BAR_MARGIN) * dayIndex;
+
+      const dayLabel = (
+        <SvgText
+          key={`label-${dayIndex}`}
+          x={CHART_PADDING - 8}
+          y={y + BAR_HEIGHT / 2}
+          fill="#fff"
+          fontSize="12"
+          textAnchor="end"
+          alignmentBaseline="middle"
+        >
+          {format(dayData.date, 'E', { locale: ja })}
+        </SvgText>
+      );
+
+      const segments = dayData.progress.map((data) => {
+        const width = (data.progress / 100) * totalWidth;
+        const x = CHART_PADDING + accumulatedWidth;
+        const segment = (
+          <Rect
+            key={`${dayIndex}-${data.category}`}
+            x={x}
+            y={y}
+            width={width}
+            height={BAR_HEIGHT}
+            fill={getProgressColor(data.category)}
+            opacity={0.8}
           />
-          <Text style={styles.barValue}>{data.progress}%</Text>
-        </View>
-      </View>
-    ));
+        );
+        accumulatedWidth += width;
+        return segment;
+      });
+
+      return [dayLabel, ...segments];
+    });
   };
 
   const getWeeklyAverage = () => {
     if (progressData.length === 0) return 0;
-    return Math.round(
-      progressData.reduce((acc, curr) => acc + curr.progress, 0) / 
-      progressData.length
-    );
+    const totalProgress = progressData.reduce((acc, day) => {
+      const dayAverage = day.progress.reduce((sum, curr) => sum + curr.progress, 0) / categories.length;
+      return acc + dayAverage;
+    }, 0);
+    return Math.round(totalProgress / progressData.length);
   };
 
   return (
@@ -99,23 +145,37 @@ export default function WeeklyProgress() {
           </Text>
         </View>
 
-        <View style={styles.chartContainer}>
-          {renderProgressBars()}
+        <View style={styles.averageSection}>
+          <Text style={styles.averageLabel}>総合達成率</Text>
+          <Text style={styles.averageValue}>{getWeeklyAverage()}%</Text>
         </View>
 
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>週間平均達成率</Text>
-          <Text style={[
-            styles.summaryValue,
-            { color: getProgressColor(getWeeklyAverage()) }
-          ]}>
-            {getWeeklyAverage()}%
-          </Text>
+        <View style={styles.chartSection}>
+          <View style={styles.chartContainer}>
+            <Svg width={CHART_WIDTH} height={(BAR_HEIGHT + BAR_MARGIN) * 7 + CHART_PADDING * 2}>
+              {renderStackedBars()}
+            </Svg>
+          </View>
+          <View style={styles.legendContainer}>
+            {categories.map((category) => (
+              <View key={category} style={styles.legendItem}>
+                <View 
+                  style={[
+                    styles.legendColor,
+                    { backgroundColor: getProgressColor(category) }
+                  ]} 
+                />
+                <Text style={styles.legendText}>
+                  {category}
+                </Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <View style={styles.goalsContainer}>
           <Text style={styles.sectionTitle}>週間目標</Text>
-          {goals.map((goal, index) => (
+          {weeklyGoals.map((goal, index) => (
             <View key={index} style={styles.goalItem}>
               <Text style={styles.goalCategory}>{goal.category}</Text>
               <Text style={styles.goalText}>{goal.goal}</Text>
@@ -136,7 +196,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: 16,
     padding: 16,
     backgroundColor: '#2f353a',
     borderRadius: 12,
@@ -152,51 +212,55 @@ const styles = StyleSheet.create({
     color: '#999',
     lineHeight: 20,
   },
-  chartContainer: {
+  averageSection: {
+    marginBottom: 24,
+    padding: 16,
+    backgroundColor: '#2f353a',
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  averageLabel: {
+    fontSize: 14,
+    color: '#999',
+    marginBottom: 8,
+  },
+  averageValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#4A90E2',
+  },
+  chartSection: {
     backgroundColor: '#2f353a',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
   },
-  barContainer: {
+  chartContainer: {
     marginBottom: 16,
   },
-  barLabel: {
-    color: '#fff',
-    fontSize: 14,
-    marginBottom: 4,
+  legendContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
-  barWrapper: {
+  legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: BAR_HEIGHT,
-  },
-  bar: {
-    height: BAR_HEIGHT,
-    borderRadius: BAR_HEIGHT / 2,
-  },
-  barValue: {
-    color: '#fff',
-    fontSize: 14,
-    marginLeft: 8,
-    minWidth: 40,
-  },
-  summaryCard: {
-    backgroundColor: '#2f353a',
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  summaryTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    width: '50%',
     marginBottom: 8,
   },
-  summaryValue: {
-    fontSize: 32,
-    fontWeight: 'bold',
+  legendColor: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  legendText: {
+    color: '#fff',
+    fontSize: 12,
+  },
+  progressText: {
+    color: '#999',
   },
   goalsContainer: {
     backgroundColor: '#2f353a',

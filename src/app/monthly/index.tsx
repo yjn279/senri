@@ -16,7 +16,7 @@ const CELL_SIZE = Math.floor((width - 64) / 7);
 const PADDING = 16;
 
 export default function MonthlyProgress() {
-  const [goals, setGoals] = useState<any[]>([]);
+  const [monthlyGoals, setMonthlyGoals] = useState<any[]>([]);
   const [progressData, setProgressData] = useState<any[]>([]);
   const [currentDate] = useState(new Date());
 
@@ -25,12 +25,20 @@ export default function MonthlyProgress() {
   }, []);
 
   const loadData = async () => {
-    const savedGoals = await getGoals();
-    const savedProgress = await getProgress();
+    // 仮の月間目標データ
+    const mockMonthlyGoals = [
+      { category: 'Health', goal: '週3回以上のジム通い' },
+      { category: 'Career', goal: 'オンライン講座の修了' },
+      { category: 'Finance', goal: '月の支出を10%削減' },
+      { category: 'Family', goal: '週末の家族行事を計画' },
+      { category: 'Social', goal: '友人との定期的な交流' },
+      { category: 'Personal Growth', goal: '新しい資格の取得' },
+      { category: 'Recreation', goal: '新しい趣味を始める' },
+      { category: 'Spirituality', goal: 'マインドフルネスの習慣化' }
+    ];
+    setMonthlyGoals(mockMonthlyGoals);
     
-    setGoals(savedGoals);
-    
-    // 仮のデータを生成（実際のアプリでは保存されたデータを使用）
+    // 月間の進捗データを生成
     const startDate = startOfMonth(currentDate);
     const endDate = endOfMonth(currentDate);
     const days = eachDayOfInterval({ start: startDate, end: endDate });
@@ -43,12 +51,8 @@ export default function MonthlyProgress() {
     setProgressData(mockData);
   };
 
-  const getProgressColor = (progress: number) => {
-    if (progress >= 80) return '#4CAF50';
-    if (progress >= 60) return '#4A90E2';
-    if (progress >= 40) return '#FF9800';
-    if (progress >= 20) return '#FF5722';
-    return '#666666';
+  const getProgressOpacity = (progress: number) => {
+    return (progress / 100) * 0.9 + 0.1; // 最小値を0.1にして完全な透明を避ける
   };
 
   const renderCalendar = () => {
@@ -87,8 +91,8 @@ export default function MonthlyProgress() {
             y={PADDING * 2 + row * CELL_SIZE}
             width={CELL_SIZE - 2}
             height={CELL_SIZE - 2}
-            fill={getProgressColor(progress)}
-            opacity={0.8}
+            fill="#4A90E2"
+            opacity={getProgressOpacity(progress)}
           />
           <SvgText
             x={PADDING + col * CELL_SIZE + CELL_SIZE / 2}
@@ -132,39 +136,18 @@ export default function MonthlyProgress() {
           </Text>
         </View>
 
-        <View style={styles.calendarContainer}>
-          {renderCalendar()}
-          <View style={styles.legend}>
-            <Text style={styles.legendTitle}>達成率</Text>
-            <View style={styles.legendItems}>
-              {[20, 40, 60, 80].map((threshold, index) => (
-                <View key={index} style={styles.legendItem}>
-                  <View 
-                    style={[
-                      styles.legendColor,
-                      { backgroundColor: getProgressColor(threshold) }
-                    ]} 
-                  />
-                  <Text style={styles.legendText}>{`${threshold}%+`}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
+        <View style={styles.averageSection}>
+          <Text style={styles.averageLabel}>総合達成率</Text>
+          <Text style={styles.averageValue}>{getMonthlyAverage()}%</Text>
         </View>
 
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>月間平均達成率</Text>
-          <Text style={[
-            styles.summaryValue,
-            { color: getProgressColor(getMonthlyAverage()) }
-          ]}>
-            {getMonthlyAverage()}%
-          </Text>
+        <View style={styles.calendarContainer}>
+          {renderCalendar()}
         </View>
 
         <View style={styles.goalsContainer}>
           <Text style={styles.sectionTitle}>月間目標</Text>
-          {goals.map((goal, index) => (
+          {monthlyGoals.map((goal, index) => (
             <View key={index} style={styles.goalItem}>
               <Text style={styles.goalCategory}>{goal.category}</Text>
               <Text style={styles.goalText}>{goal.goal}</Text>
@@ -185,7 +168,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: 16,
     padding: 16,
     backgroundColor: '#2f353a',
     borderRadius: 12,
@@ -201,57 +184,28 @@ const styles = StyleSheet.create({
     color: '#999',
     lineHeight: 20,
   },
+  averageSection: {
+    marginBottom: 24,
+    padding: 16,
+    backgroundColor: '#2f353a',
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  averageLabel: {
+    fontSize: 14,
+    color: '#999',
+    marginBottom: 8,
+  },
+  averageValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#4A90E2',
+  },
   calendarContainer: {
     backgroundColor: '#2f353a',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
-  },
-  legend: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#3f464c',
-  },
-  legendTitle: {
-    fontSize: 14,
-    color: '#fff',
-    marginBottom: 8,
-  },
-  legendItems: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  legendColor: {
-    width: 12,
-    height: 12,
-    borderRadius: 2,
-    marginRight: 4,
-  },
-  legendText: {
-    color: '#999',
-    fontSize: 12,
-  },
-  summaryCard: {
-    backgroundColor: '#2f353a',
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  summaryTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  summaryValue: {
-    fontSize: 32,
-    fontWeight: 'bold',
   },
   goalsContainer: {
     backgroundColor: '#2f353a',

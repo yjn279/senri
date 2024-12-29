@@ -1,7 +1,13 @@
 import { Stack, Tabs } from 'expo-router';
 import { ThemeProvider, DefaultTheme } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
 import { View, StyleSheet } from 'react-native';
+import { 
+  CircleCheckBig,
+  ChartBar, 
+  Calendar,
+  ChartColumn,
+  ChartPie,
+} from 'lucide-react-native';
 
 const theme = {
   ...DefaultTheme,
@@ -30,52 +36,54 @@ export default function RootLayout() {
           },
           tabBarActiveTintColor: '#4A90E2',
           tabBarInactiveTintColor: '#999',
+          tabBarLabelStyle: {
+            fontSize: 12,
+            marginBottom: 4,
+          },
         }}
       >
         <Tabs.Screen
-          name="lifetime"
-          options={{
-            title: '生涯目標',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="infinite" size={size} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="yearly"
-          options={{
-            title: '年間',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="calendar" size={size} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
           name="index"
           options={{
-            title: '本日',
-            tabBarIcon: ({ color }) => (
-              <View style={styles.floatingButton}>
-                <Ionicons name="today" size={32} color="#fff" />
-              </View>
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="monthly"
-          options={{
-            title: '月間',
+            title: '今日',
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="calendar-outline" size={size} color={color} />
+              <CircleCheckBig size={size} color={color} />
             ),
           }}
         />
         <Tabs.Screen
-          name="weekly"
+          name="weekly/index"
           options={{
             title: '週間',
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="calendar-clear-outline" size={size} color={color} />
+              <ChartBar size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="monthly/index"
+          options={{
+            title: '月間',
+            tabBarIcon: ({ color, size }) => (
+              <Calendar size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="yearly/index"
+          options={{
+            title: '年間',
+            tabBarIcon: ({ color, size }) => (
+              <ChartColumn size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="lifetime/index"
+          options={{
+            title: '生涯',
+            tabBarIcon: ({ color, size }) => (
+              <ChartPie size={size} color={color} />
             ),
           }}
         />
@@ -84,22 +92,4 @@ export default function RootLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  floatingButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#4A90E2',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-});
+const styles = StyleSheet.create({});

@@ -140,7 +140,7 @@ export default function LifetimeProgress() {
               textAnchor="middle"
               alignmentBaseline="middle"
             >
-              {averageProgress}%
+              {averageProgress}
             </SvgText>
           </Svg>
         </View>

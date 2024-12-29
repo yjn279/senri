@@ -10,9 +10,12 @@ import {
 import { getGoals, getProgress } from '../utils/storage';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import Svg, { Rect, Text as SvgText } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
-const BAR_HEIGHT = 24;
+const CHART_WIDTH = width - 80;
+const CHART_HEIGHT = 240;
+const CHART_PADDING = 20;
 
 export default function DailyProgress() {
   const [goals, setGoals] = useState<any[]>([]);
@@ -23,7 +26,7 @@ export default function DailyProgress() {
   const categories = [
     'Health', 'Career', 'Finance', 'Family',
     'Social', 'Personal Growth', 'Recreation', 'Spirituality'
-  ];
+  ] as const;
 
   useEffect(() => {
     loadData();
@@ -54,12 +57,18 @@ export default function DailyProgress() {
     setTasks(mockTasks);
   };
 
-  const getProgressColor = (progress: number) => {
-    if (progress >= 80) return '#4CAF50';
-    if (progress >= 60) return '#4A90E2';
-    if (progress >= 40) return '#FF9800';
-    if (progress >= 20) return '#FF5722';
-    return '#666666';
+  const getProgressColor = (category: typeof categories[number]) => {
+    const colors = {
+      'Health': '#FF6B6B',
+      'Career': '#4ECDC4',
+      'Finance': '#45B7D1',
+      'Family': '#96CEB4',
+      'Social': '#FFEEAD',
+      'Personal Growth': '#D4A5A5',
+      'Recreation': '#9B9B9B',
+      'Spirituality': '#A8E6CF'
+    } as const;
+    return colors[category] || '#666666';
   };
 
   const toggleTask = (taskId: string) => {
@@ -70,24 +79,28 @@ export default function DailyProgress() {
     ));
   };
 
-  const renderProgressBars = () => {
-    return progressData.map((data, index) => (
-      <View key={data.category} style={styles.barContainer}>
-        <Text style={styles.barLabel}>{data.category}</Text>
-        <View style={styles.barWrapper}>
-          <View 
-            style={[
-              styles.bar, 
-              { 
-                width: `${data.progress}%`,
-                backgroundColor: getProgressColor(data.progress)
-              }
-            ]} 
-          />
-          <Text style={styles.barValue}>{data.progress}%</Text>
-        </View>
-      </View>
-    ));
+  const renderStackedBar = () => {
+    let accumulatedWidth = 0;
+    const totalWidth = CHART_WIDTH - CHART_PADDING * 2;
+    const barHeight = 24;
+
+    return progressData.map((data) => {
+      const width = (data.progress / 100) * totalWidth;
+      const x = CHART_PADDING + accumulatedWidth;
+      const segment = (
+        <Rect
+          key={data.category}
+          x={x}
+          y={CHART_PADDING}
+          width={width}
+          height={barHeight}
+          fill={getProgressColor(data.category)}
+          opacity={0.8}
+        />
+      );
+      accumulatedWidth += width;
+      return segment;
+    });
   };
 
   const getDailyAverage = () => {
@@ -110,18 +123,35 @@ export default function DailyProgress() {
           </Text>
         </View>
 
-        <View style={styles.chartContainer}>
-          {renderProgressBars()}
+        <View style={styles.averageSection}>
+          <Text style={styles.averageLabel}>総合達成率</Text>
+          <Text style={styles.averageValue}>{getDailyAverage()}%</Text>
         </View>
 
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>本日の平均達成率</Text>
-          <Text style={[
-            styles.summaryValue,
-            { color: getProgressColor(getDailyAverage()) }
-          ]}>
-            {getDailyAverage()}%
-          </Text>
+        <View style={styles.chartSection}>
+          <View style={styles.chartContainer}>
+            <Svg width={CHART_WIDTH} height={CHART_HEIGHT / 4}>
+              {renderStackedBar()}
+            </Svg>
+          </View>
+          <View style={styles.legendContainer}>
+            {categories.map((category) => (
+              <View key={category} style={styles.legendItem}>
+                <View 
+                  style={[
+                    styles.legendColor,
+                    { backgroundColor: getProgressColor(category) }
+                  ]} 
+                />
+                <Text style={styles.legendText}>
+                  {category}
+                  <Text style={styles.progressText}>
+                    {' '}({progressData.find(d => d.category === category)?.progress || 0}%)
+                  </Text>
+                </Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <View style={styles.tasksContainer}>
@@ -163,7 +193,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: 16,
     padding: 16,
     backgroundColor: '#2f353a',
     borderRadius: 12,
@@ -179,51 +209,55 @@ const styles = StyleSheet.create({
     color: '#999',
     lineHeight: 20,
   },
-  chartContainer: {
+  averageSection: {
+    marginBottom: 24,
+    padding: 16,
+    backgroundColor: '#2f353a',
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  averageLabel: {
+    fontSize: 14,
+    color: '#999',
+    marginBottom: 8,
+  },
+  averageValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#4A90E2',
+  },
+  chartSection: {
     backgroundColor: '#2f353a',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
   },
-  barContainer: {
+  chartContainer: {
     marginBottom: 16,
   },
-  barLabel: {
-    color: '#fff',
-    fontSize: 14,
-    marginBottom: 4,
+  legendContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
-  barWrapper: {
+  legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: BAR_HEIGHT,
-  },
-  bar: {
-    height: BAR_HEIGHT,
-    borderRadius: BAR_HEIGHT / 2,
-  },
-  barValue: {
-    color: '#fff',
-    fontSize: 14,
-    marginLeft: 8,
-    minWidth: 40,
-  },
-  summaryCard: {
-    backgroundColor: '#2f353a',
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  summaryTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    width: '50%',
     marginBottom: 8,
   },
-  summaryValue: {
-    fontSize: 32,
-    fontWeight: 'bold',
+  legendColor: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  legendText: {
+    color: '#fff',
+    fontSize: 12,
+  },
+  progressText: {
+    color: '#999',
   },
   tasksContainer: {
     backgroundColor: '#2f353a',

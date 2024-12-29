@@ -22,14 +22,14 @@ const PADDING = 40;
 const BAR_WIDTH = 20;
 
 export default function YearlyProgress() {
-  const [goals, setGoals] = useState<any[]>([]);
+  const [yearlyGoals, setYearlyGoals] = useState<any[]>([]);
   const [progressData, setProgressData] = useState<any[]>([]);
   const [monthlyAverages, setMonthlyAverages] = useState<number[]>([]);
 
   const categories = [
     'Health', 'Career', 'Finance', 'Family',
     'Social', 'Personal Growth', 'Recreation', 'Spirituality'
-  ];
+  ] as const;
 
   const months = [
     '1月', '2月', '3月', '4月', '5月', '6月',
@@ -41,10 +41,18 @@ export default function YearlyProgress() {
   }, []);
 
   const loadData = async () => {
-    const savedGoals = await getGoals();
-    const savedProgress = await getProgress();
-    
-    setGoals(savedGoals);
+    // 仮の年間目標データ
+    const mockYearlyGoals = [
+      { category: 'Health', goal: '健康診断の数値を改善する' },
+      { category: 'Career', goal: '新しい職務資格を取得する' },
+      { category: 'Finance', goal: '年間貯蓄目標を達成する' },
+      { category: 'Family', goal: '家族旅行を2回実施する' },
+      { category: 'Social', goal: 'コミュニティ活動に参加する' },
+      { category: 'Personal Growth', goal: '新しい言語を習得する' },
+      { category: 'Recreation', goal: '長期休暇を取得して充実させる' },
+      { category: 'Spirituality', goal: '定期的な瞑想習慣を確立する' }
+    ];
+    setYearlyGoals(mockYearlyGoals);
     
     // 仮のデータを生成（実際のアプリでは保存されたデータを使用）
     const mockData = months.map(month => 
@@ -66,6 +74,20 @@ export default function YearlyProgress() {
       );
     });
     setMonthlyAverages(averages);
+  };
+
+  const getProgressColor = (category: typeof categories[number]) => {
+    const colors = {
+      'Health': '#FF6B6B',
+      'Career': '#4ECDC4',
+      'Finance': '#45B7D1',
+      'Family': '#96CEB4',
+      'Social': '#FFEEAD',
+      'Personal Growth': '#D4A5A5',
+      'Recreation': '#9B9B9B',
+      'Spirituality': '#A8E6CF'
+    } as const;
+    return colors[category] || '#666666';
   };
 
   const getBarHeight = (progress: number) => {
@@ -108,7 +130,7 @@ export default function YearlyProgress() {
             y={y}
             width={BAR_WIDTH}
             height={height}
-            fill={`hsl(${210 + categoryIndex * 30}, 70%, 60%)`}
+            fill={getProgressColor(category)}
             opacity={0.7}
           />
         );
@@ -132,17 +154,36 @@ export default function YearlyProgress() {
     });
   };
 
+  const getYearlyAverage = () => {
+    if (monthlyAverages.length === 0) return 0;
+    return Math.round(
+      monthlyAverages.reduce((acc, curr) => acc + curr, 0) / 
+      monthlyAverages.length
+    );
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>年間の進捗</Text>
-          <Text style={styles.headerSubtitle}>
-            月ごとのカテゴリー達成率と平均達成率の推移
-          </Text>
+          <View style={styles.headerTop}>
+            <View>
+              <Text style={styles.headerTitle}>
+                {new Date().getFullYear()}年の進捗
+              </Text>
+              <Text style={styles.headerSubtitle}>
+                月ごとのカテゴリー達成率と平均達成率の推移
+              </Text>
+            </View>
+          </View>
         </View>
 
-        <View style={styles.chartContainer}>
+        <View style={styles.averageSection}>
+          <Text style={styles.averageLabel}>総合達成率</Text>
+          <Text style={styles.averageValue}>{getYearlyAverage()}%</Text>
+        </View>
+
+        <View style={styles.chartSection}>
           <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
             {/* Y軸 */}
             <Line
@@ -206,25 +247,25 @@ export default function YearlyProgress() {
               </SvgText>
             ))}
           </Svg>
-        </View>
 
-        <View style={styles.legendContainer}>
-          {categories.map((category, index) => (
-            <View key={category} style={styles.legendItem}>
-              <View 
-                style={[
-                  styles.legendColor,
-                  { backgroundColor: `hsl(${210 + index * 30}, 70%, 60%)` }
-                ]} 
-              />
-              <Text style={styles.legendText}>{category}</Text>
-            </View>
-          ))}
+          <View style={styles.legendContainer}>
+            {categories.map((category) => (
+              <View key={category} style={styles.legendItem}>
+                <View 
+                  style={[
+                    styles.legendColor,
+                    { backgroundColor: getProgressColor(category) }
+                  ]} 
+                />
+                <Text style={styles.legendText}>{category}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <View style={styles.goalsContainer}>
           <Text style={styles.sectionTitle}>年間目標</Text>
-          {goals.map((goal, index) => (
+          {yearlyGoals.map((goal, index) => (
             <View key={index} style={styles.goalItem}>
               <Text style={styles.goalCategory}>{goal.category}</Text>
               <Text style={styles.goalText}>{goal.goal}</Text>
@@ -250,6 +291,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#2f353a',
     borderRadius: 12,
   },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -261,20 +307,30 @@ const styles = StyleSheet.create({
     color: '#999',
     lineHeight: 20,
   },
-  chartContainer: {
-    alignItems: 'center',
-    marginVertical: 24,
-    backgroundColor: '#2f353a',
+  averageContainer: {
+    backgroundColor: '#4A90E2',
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
   },
-  legendContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  averageText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  chartSection: {
     backgroundColor: '#2f353a',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
+  },
+  legendContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#3f464c',
   },
   legendItem: {
     flexDirection: 'row',
@@ -315,5 +371,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#fff',
     lineHeight: 20,
+  },
+  averageSection: {
+    marginBottom: 24,
+    padding: 16,
+    backgroundColor: '#2f353a',
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  averageLabel: {
+    fontSize: 14,
+    color: '#999',
+    marginBottom: 8,
+  },
+  averageValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#4A90E2',
   },
 }); 
