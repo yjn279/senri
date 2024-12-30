@@ -38,7 +38,7 @@ export default function RootLayout() {
 
   if (!session) {
     return (
-      <ThemeProvider>
+      <ThemeProvider value={theme}>
         <Auth />
       </ThemeProvider>
     )
