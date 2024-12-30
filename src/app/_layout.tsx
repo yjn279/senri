@@ -8,6 +8,10 @@ import {
   ChartColumn,
   ChartPie,
 } from 'lucide-react-native';
+import { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabase'
+import { Session } from '@supabase/supabase-js'
+import Auth from '../components/Auth'
 
 const theme = {
   ...DefaultTheme,
@@ -20,6 +24,26 @@ const theme = {
 };
 
 export default function RootLayout() {
+  const [session, setSession] = useState<Session | null>(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+  }, [])
+
+  if (!session) {
+    return (
+      <ThemeProvider>
+        <Auth />
+      </ThemeProvider>
+    )
+  }
+
   return (
     <ThemeProvider value={theme}>
       <Tabs
