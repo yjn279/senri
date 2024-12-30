@@ -21,8 +21,14 @@ export default function LifetimeProgress() {
   const [averageProgress, setAverageProgress] = useState(0);
 
   const categories = [
-    'Health', 'Career', 'Finance', 'Family',
-    'Social', 'Personal Growth', 'Recreation', 'Spirituality'
+    'career',
+    'finance',
+    'health',
+    'family',
+    'relationship',
+    'spirituality',
+    'recreation',
+    'environment',
   ];
 
   useEffect(() => {

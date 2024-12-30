@@ -24,8 +24,14 @@ export default function DailyProgress() {
   const [currentDate] = useState(new Date());
 
   const categories = [
-    'Health', 'Career', 'Finance', 'Family',
-    'Social', 'Personal Growth', 'Recreation', 'Spirituality'
+    'career',
+    'finance',
+    'health',
+    'family',
+    'relationship',
+    'spirituality',
+    'recreation',
+    'environment',
   ] as const;
 
   useEffect(() => {
@@ -59,14 +65,14 @@ export default function DailyProgress() {
 
   const getProgressColor = (category: typeof categories[number]) => {
     const colors = {
-      'Health': '#FF6B6B',
-      'Career': '#4ECDC4',
-      'Finance': '#45B7D1',
-      'Family': '#96CEB4',
-      'Social': '#FFEEAD',
-      'Personal Growth': '#D4A5A5',
-      'Recreation': '#9B9B9B',
-      'Spirituality': '#A8E6CF'
+      'career': '#4ECDC4',
+      'finance': '#45B7D1',
+      'health': '#FF6B6B',
+      'family': '#96CEB4',
+      'relationship': '#FFEEAD',
+      'spirituality': '#D4A5A5',
+      'recreation': '#9B9B9B',
+      'environment': '#A8E6CF'
     } as const;
     return colors[category] || '#666666';
   };

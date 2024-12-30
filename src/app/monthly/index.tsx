@@ -27,14 +27,14 @@ export default function MonthlyProgress() {
   const loadData = async () => {
     // 仮の月間目標データ
     const mockMonthlyGoals = [
-      { category: 'Health', goal: '週3回以上のジム通い' },
-      { category: 'Career', goal: 'オンライン講座の修了' },
-      { category: 'Finance', goal: '月の支出を10%削減' },
-      { category: 'Family', goal: '週末の家族行事を計画' },
-      { category: 'Social', goal: '友人との定期的な交流' },
-      { category: 'Personal Growth', goal: '新しい資格の取得' },
-      { category: 'Recreation', goal: '新しい趣味を始める' },
-      { category: 'Spirituality', goal: 'マインドフルネスの習慣化' }
+      { category: 'career', goal: 'オンライン講座の修了' },
+      { category: 'finance', goal: '月の支出を10%削減' },
+      { category: 'health', goal: '週3回以上のジム通い' },
+      { category: 'family', goal: '週末の家族行事を計画' },
+      { category: 'relationship', goal: '友人との定期的な交流' },
+      { category: 'spirituality', goal: 'マインドフルネスの習慣化' },
+      { category: 'recreation', goal: '新しい趣味を始める' },
+      { category: 'environment', goal: '環境に配慮した生活習慣の確立' }
     ];
     setMonthlyGoals(mockMonthlyGoals);
     
