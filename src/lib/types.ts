@@ -1,3 +1,5 @@
+import { Categories } from "./enums";
+
 export type DailyGoal =  {
   id: string;
   completed: boolean;
@@ -17,12 +19,4 @@ export type DailyGoal =  {
   updated: string;
 }
 
-export type Category = 
-  | 'career'
-  | 'finance'
-  | 'health'
-  | 'family'
-  | 'relationship'
-  | 'spirituality'
-  | 'recreation'
-  | 'environment';
+export type Category = keyof typeof Categories;

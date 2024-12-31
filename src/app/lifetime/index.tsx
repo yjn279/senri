@@ -73,7 +73,7 @@ export default function LifetimeProgress() {
           y1={CENTER_Y}
           x2={x2}
           y2={y2}
-          stroke="#3f464c"
+          stroke="#E0E0E0"
           strokeWidth="1"
         />
       );
@@ -140,15 +140,26 @@ export default function LifetimeProgress() {
             <SvgText
               x={CENTER_X}
               y={CENTER_Y}
-              fill="#fff"
+              fill="#333333"
               fontSize="32"
               fontWeight="bold"
               textAnchor="middle"
               alignmentBaseline="middle"
             >
-              {averageProgress}
+              {averageProgress}%
             </SvgText>
           </Svg>
+          
+          <View style={styles.legendContainer}>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendColor, { backgroundColor: '#4A90E2', opacity: 0.3 }]} />
+              <Text style={styles.legendText}>達成エリア</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendColor, { backgroundColor: '#E0E0E0' }]} />
+              <Text style={styles.legendText}>目標ライン</Text>
+            </View>
+          </View>
         </View>
 
         <View style={styles.goalsContainer}>
@@ -168,7 +179,7 @@ export default function LifetimeProgress() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#25292e',
+    backgroundColor: '#FFFFFF',
   },
   content: {
     padding: 16,
@@ -176,36 +187,36 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 24,
     padding: 16,
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333333',
     marginBottom: 8,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#999',
+    color: '#666666',
     lineHeight: 20,
   },
   chartContainer: {
     alignItems: 'center',
     marginVertical: 24,
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 16,
   },
   goalsContainer: {
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333333',
     marginBottom: 16,
   },
   goalItem: {
@@ -218,7 +229,31 @@ const styles = StyleSheet.create({
   },
   goalText: {
     fontSize: 14,
-    color: '#fff',
+    color: '#333333',
     lineHeight: 20,
+  },
+  legendContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 12,
+  },
+  legendColor: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  legendText: {
+    color: '#333333',
+    fontSize: 12,
   },
 }); 

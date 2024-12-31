@@ -9,9 +9,10 @@ import {
 import { Pie, PolarChart } from 'victory-native';
 import { useDailyGoals } from '../hooks/useDailyGoals';
 import { useDailyProgress } from '../hooks/useDailyProgress';
+import { Categories, CategoryColors } from '../lib/enums';
+import { Category } from '../lib/types';
 
 const { width } = Dimensions.get('window');
-const CHART_PADDING = 20;
 
 export default function DailyProgress() {
   const { goals, handleGoal } = useDailyGoals();
@@ -38,37 +39,74 @@ export default function DailyProgress() {
                   />
                 </PolarChart>
                 <View style={styles.progressOverlay}>
+                  <Text style={styles.progressOverlayLabel}>達成率</Text>
                   <Text style={styles.progressOverlayValue}>{progress}%</Text>
                 </View>
               </View>
             </View>
           </View>
+          <View style={styles.legendContainer}>
+            {progressList.map((progress) => {
+              // 未達成の判例は表示しない
+              if (progress.label === Categories.remaining) {
+                return null
+              }
+
+              return (
+                <View key={progress.label} style={styles.legendItem}>
+                  <View 
+                  style={[
+                    styles.legendColor,
+                    { backgroundColor: progress.color }
+                  ]} 
+                />
+                <Text style={styles.legendText}>{progress.label}</Text>
+                </View>
+              )
+            })}
+          </View>
         </View>
 
         {/* 目標一覧 */}
         <View style={styles.tasksContainer}>
-          {goals.map((goal) => (
-            <TouchableOpacity
-              key={goal.id}
-              style={styles.taskItem}
-              onPress={() => handleGoal(goal.id)}
-            >
-              <View style={styles.taskCheckbox}>
-                {goal.completed && (
-                  <View style={styles.taskCheckboxInner} />
-                )}
-              </View>
-              <View style={styles.taskContent}>
-                <Text style={styles.taskCategory}>{goal.life_goals?.category}</Text>
-                <Text style={[
-                  styles.taskTitle,
-                  goal.completed && styles.taskCompleted
+          {goals.map((goal) => {
+            const category = goal.life_goals?.category as Category
+            const color = CategoryColors[category]
+            
+            return (
+              <TouchableOpacity
+                key={goal.id}
+                style={styles.taskItem}
+                onPress={() => handleGoal(goal.id)}
+              >
+                <View style={[
+                  styles.taskCheckbox,
+                  { borderColor: color }
                 ]}>
-                  {goal.monthly_goals?.title}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+                  {goal.completed && (
+                    <View style={[
+                      styles.taskCheckboxInner,
+                      { backgroundColor: color }
+                    ]} />
+                  )}
+                </View>
+                <View style={styles.taskContent}>
+                  <Text style={[
+                    styles.taskCategory,
+                    { color: color }
+                  ]}>
+                    {category}
+                  </Text>
+                  <Text style={[
+                    styles.taskTitle,
+                    goal.completed && styles.taskCompleted
+                  ]}>
+                    {goal.monthly_goals?.title}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )
+          })}
         </View>
       </View>
     </ScrollView>
@@ -78,7 +116,7 @@ export default function DailyProgress() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#25292e',
+    backgroundColor: '#FFFFFF',
   },
   content: {
     padding: 16,
@@ -86,30 +124,30 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 16,
     padding: 16,
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333333',
     marginBottom: 8,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#999',
+    color: '#666666',
     lineHeight: 20,
   },
   averageSection: {
     marginBottom: 24,
     padding: 16,
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     alignItems: 'center',
   },
   averageLabel: {
     fontSize: 14,
-    color: '#999',
+    color: '#666666',
     marginBottom: 8,
   },
   averageValue: {
@@ -118,14 +156,14 @@ const styles = StyleSheet.create({
     color: '#4A90E2',
   },
   chartSection: {
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
   },
   chartContainer: {
     marginVertical: 16,
-    paddingHorizontal: CHART_PADDING,
+    paddingHorizontal: 20,
     justifyContent: 'center',
   },
   pieChartWrapper: {
@@ -142,6 +180,10 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     flexWrap: 'wrap',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
   },
   legendItem: {
     flexDirection: 'row',
@@ -156,21 +198,21 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   legendText: {
-    color: '#fff',
+    color: '#333333',
     fontSize: 12,
   },
   progressText: {
     color: '#999',
   },
   tasksContainer: {
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333333',
     marginBottom: 16,
   },
   taskItem: {
@@ -178,14 +220,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#3f464c',
+    borderBottomColor: '#E0E0E0',
   },
   taskCheckbox: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#4A90E2',
     marginRight: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -194,23 +235,21 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#4A90E2',
   },
   taskContent: {
     flex: 1,
   },
   taskCategory: {
     fontSize: 12,
-    color: '#4A90E2',
     marginBottom: 4,
   },
   taskTitle: {
     fontSize: 14,
-    color: '#fff',
+    color: '#333333',
   },
   taskCompleted: {
     textDecorationLine: 'line-through',
-    color: '#666',
+    color: '#999999',
   },
   tooltip: {
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -232,8 +271,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   progressOverlayValue: {
-    fontSize: 32,
+    fontSize: 60,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333333',
+  },
+  progressOverlayLabel: {
+    fontSize: 18,
+    color: '#666666',
+    marginBottom: 4,
   },
 }); 

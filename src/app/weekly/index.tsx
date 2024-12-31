@@ -99,7 +99,7 @@ export default function WeeklyProgress() {
           key={`label-${dayIndex}`}
           x={CHART_PADDING - 8}
           y={y + BAR_HEIGHT / 2}
-          fill="#fff"
+          fill="#333333"
           fontSize="12"
           textAnchor="end"
           alignmentBaseline="middle"
@@ -196,7 +196,7 @@ export default function WeeklyProgress() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#25292e',
+    backgroundColor: '#FFFFFF',
   },
   content: {
     padding: 16,
@@ -204,30 +204,30 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 16,
     padding: 16,
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333333',
     marginBottom: 8,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#999',
+    color: '#666666',
     lineHeight: 20,
   },
   averageSection: {
     marginBottom: 24,
     padding: 16,
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     alignItems: 'center',
   },
   averageLabel: {
     fontSize: 14,
-    color: '#999',
+    color: '#666666',
     marginBottom: 8,
   },
   averageValue: {
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     color: '#4A90E2',
   },
   chartSection: {
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
@@ -262,21 +262,21 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   legendText: {
-    color: '#fff',
+    color: '#333333',
     fontSize: 12,
   },
   progressText: {
     color: '#999',
   },
   goalsContainer: {
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333333',
     marginBottom: 16,
   },
   goalItem: {
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   },
   goalText: {
     fontSize: 14,
-    color: '#fff',
+    color: '#333333',
     lineHeight: 20,
   },
 }); 

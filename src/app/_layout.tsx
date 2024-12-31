@@ -19,8 +19,8 @@ const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    background: '#25292e',
-    text: '#ffffff',
+    background: '#FFFFFF',
+    text: '#333333',
     primary: '#4A90E2',
   },
 };
@@ -51,17 +51,17 @@ export default function RootLayout() {
       <Tabs
         screenOptions={{
           headerStyle: {
-            backgroundColor: '#25292e',
+            backgroundColor: '#FFFFFF',
           },
-          headerTintColor: '#fff',
+          headerTintColor: '#333333',
           tabBarStyle: {
-            backgroundColor: '#25292e',
-            borderTopColor: '#3f464c',
+            backgroundColor: '#FFFFFF',
+            borderTopColor: '#E0E0E0',
             height: 60,
             paddingBottom: 8,
           },
           tabBarActiveTintColor: '#4A90E2',
-          tabBarInactiveTintColor: '#999',
+          tabBarInactiveTintColor: '#666666',
           tabBarLabelStyle: {
             fontSize: 12,
             marginBottom: 4,

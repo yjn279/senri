@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { DailyGoal } from '../lib/types';
+import { Categories } from '../lib/enums';
+import { Category, DailyGoal } from '../lib/types';
 
 export const useDailyGoals = () => {
   const [goals, setGoals] = useState<DailyGoal[]>([]);
@@ -40,7 +41,25 @@ export const useDailyGoals = () => {
       // エラーハンドリング
       if (error) throw error;
 
-      setGoals(data);
+      //　カテゴリの表示順の定義
+      const categoryOrder = Object.fromEntries(
+        Object.keys(Categories).map((category, index) => [category, index])
+      ) as Record<Category, number>;
+
+      // ソート
+      const sortedData = data.sort((a, b) => {
+        const categoryA = a.life_goals?.category as Category;
+        const categoryB = b.life_goals?.category as Category;
+        
+        // カテゴリ順の比較
+        const orderDiff = (categoryOrder[categoryA]) - (categoryOrder[categoryB]);
+        if (orderDiff !== 0) return orderDiff;
+        
+        // カテゴリが同じ場合はIDで比較
+        return a.id.localeCompare(b.id);
+      });
+      
+      setGoals(sortedData);
     } catch (error) {
       console.error({ error });
       setError(error instanceof Error ? error : new Error('Unknown error occurred'));

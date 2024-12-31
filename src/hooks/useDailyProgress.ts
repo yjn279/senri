@@ -13,7 +13,12 @@ export const useDailyProgress = (goals: DailyGoal[]) => {
   // データの取得
   useEffect(() => {
     // カテゴリごとの達成率
-    const progressList = Object.values(Categories).map(category => {
+    const categories = Object.keys(Categories) as Category[];
+    const progressList = categories.map(category => {
+      if (category === 'remaining') {
+        return null
+      }
+
       // カテゴリに属する目標の取得
       const categoryGoals = goals.filter(goal => goal.life_goals?.category === category);
 
@@ -25,15 +30,15 @@ export const useDailyProgress = (goals: DailyGoal[]) => {
       return {
         value: progress / 8,  // カテゴリの数で割る
         color: CategoryColors[category],
-        label: category,
+        label: Categories[category],
       };
-    });
+    }).filter(category => category !== null);
 
     // 平均達成率
     const completed = progressList.reduce((completed, data) => completed + data.value, 0);
     const averageProgress = Math.round(completed * 100);
 
-    // 残りの達成率
+    // 未達成
     progressList.push({
       value: 1 - completed,
       color: CategoryColors.remaining,
