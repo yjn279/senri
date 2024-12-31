@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Category } from '../types/database';
 
 // ストレージのキー
 const STORAGE_KEYS = {
@@ -8,7 +9,7 @@ const STORAGE_KEYS = {
 
 // 目標データの型定義
 export type Goal = {
-  category: string;
+  category: Category;
   goal: string;
 };
 

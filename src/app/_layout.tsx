@@ -1,3 +1,5 @@
+import { format } from 'date-fns';
+import { ja } from 'date-fns/locale';
 import { Stack, Tabs } from 'expo-router';
 import { ThemeProvider, DefaultTheme } from '@react-navigation/native';
 import { View, StyleSheet } from 'react-native';
@@ -8,34 +10,58 @@ import {
   ChartColumn,
   ChartPie,
 } from 'lucide-react-native';
+import { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabase'
+import { Session } from '@supabase/supabase-js'
+import Auth from '../components/Auth'
 
 const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    background: '#25292e',
-    text: '#ffffff',
+    background: '#FFFFFF',
+    text: '#333333',
     primary: '#4A90E2',
   },
 };
 
 export default function RootLayout() {
+  const [session, setSession] = useState<Session | null>(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+  }, [])
+
+  if (!session) {
+    return (
+      <ThemeProvider value={theme}>
+        <Auth />
+      </ThemeProvider>
+    )
+  }
+
   return (
     <ThemeProvider value={theme}>
       <Tabs
         screenOptions={{
           headerStyle: {
-            backgroundColor: '#25292e',
+            backgroundColor: '#FFFFFF',
           },
-          headerTintColor: '#fff',
+          headerTintColor: '#333333',
           tabBarStyle: {
-            backgroundColor: '#25292e',
-            borderTopColor: '#3f464c',
+            backgroundColor: '#FFFFFF',
+            borderTopColor: '#E0E0E0',
             height: 60,
             paddingBottom: 8,
           },
           tabBarActiveTintColor: '#4A90E2',
-          tabBarInactiveTintColor: '#999',
+          tabBarInactiveTintColor: '#666666',
           tabBarLabelStyle: {
             fontSize: 12,
             marginBottom: 4,
@@ -45,7 +71,8 @@ export default function RootLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: '今日',
+            title: format(new Date(), 'M月d日（E）の目標', { locale: ja }),
+            tabBarLabel: '今日',
             tabBarIcon: ({ color, size }) => (
               <CircleCheckBig size={size} color={color} />
             ),
@@ -54,7 +81,8 @@ export default function RootLayout() {
         <Tabs.Screen
           name="weekly/index"
           options={{
-            title: '週間',
+            title: '今週の目標',
+            tabBarLabel: '週間',
             tabBarIcon: ({ color, size }) => (
               <ChartBar size={size} color={color} />
             ),
@@ -63,7 +91,8 @@ export default function RootLayout() {
         <Tabs.Screen
           name="monthly/index"
           options={{
-            title: '月間',
+            title: '今月の目標',
+            tabBarLabel: '月間',
             tabBarIcon: ({ color, size }) => (
               <Calendar size={size} color={color} />
             ),
@@ -72,7 +101,8 @@ export default function RootLayout() {
         <Tabs.Screen
           name="yearly/index"
           options={{
-            title: '年間',
+            title: '今年の目標',
+            tabBarLabel: '年間',
             tabBarIcon: ({ color, size }) => (
               <ChartColumn size={size} color={color} />
             ),
@@ -81,7 +111,8 @@ export default function RootLayout() {
         <Tabs.Screen
           name="lifetime/index"
           options={{
-            title: '生涯',
+            title: '生涯の目標',
+            tabBarLabel: '生涯',
             tabBarIcon: ({ color, size }) => (
               <ChartPie size={size} color={color} />
             ),

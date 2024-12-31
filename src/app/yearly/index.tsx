@@ -13,7 +13,6 @@ import Svg, {
   Path,
   Circle
 } from 'react-native-svg';
-import { getGoals, getProgress } from '../../utils/storage';
 
 const { width } = Dimensions.get('window');
 const CHART_WIDTH = width - 64;
@@ -27,8 +26,14 @@ export default function YearlyProgress() {
   const [monthlyAverages, setMonthlyAverages] = useState<number[]>([]);
 
   const categories = [
-    'Health', 'Career', 'Finance', 'Family',
-    'Social', 'Personal Growth', 'Recreation', 'Spirituality'
+    'career',
+    'finance',
+    'health',
+    'family',
+    'relationship',
+    'spirituality',
+    'recreation',
+    'environment',
   ] as const;
 
   const months = [
@@ -43,14 +48,14 @@ export default function YearlyProgress() {
   const loadData = async () => {
     // 仮の年間目標データ
     const mockYearlyGoals = [
-      { category: 'Health', goal: '健康診断の数値を改善する' },
-      { category: 'Career', goal: '新しい職務資格を取得する' },
-      { category: 'Finance', goal: '年間貯蓄目標を達成する' },
-      { category: 'Family', goal: '家族旅行を2回実施する' },
-      { category: 'Social', goal: 'コミュニティ活動に参加する' },
-      { category: 'Personal Growth', goal: '新しい言語を習得する' },
-      { category: 'Recreation', goal: '長期休暇を取得して充実させる' },
-      { category: 'Spirituality', goal: '定期的な瞑想習慣を確立する' }
+      { category: 'career', goal: '新しい職務資格を取得する' },
+      { category: 'finance', goal: '年間貯蓄目標を達成する' },
+      { category: 'health', goal: '健康診断の数値を改善する' },
+      { category: 'family', goal: '家族旅行を2回実施する' },
+      { category: 'relationship', goal: 'コミュニティ活動に参加する' },
+      { category: 'spirituality', goal: '定期的な瞑想習慣を確立する' },
+      { category: 'recreation', goal: '長期休暇を取得して充実させる' },
+      { category: 'environment', goal: '環境負荷の少ない生活様式への移行' }
     ];
     setYearlyGoals(mockYearlyGoals);
     
@@ -78,14 +83,14 @@ export default function YearlyProgress() {
 
   const getProgressColor = (category: typeof categories[number]) => {
     const colors = {
-      'Health': '#FF6B6B',
-      'Career': '#4ECDC4',
-      'Finance': '#45B7D1',
-      'Family': '#96CEB4',
-      'Social': '#FFEEAD',
-      'Personal Growth': '#D4A5A5',
-      'Recreation': '#9B9B9B',
-      'Spirituality': '#A8E6CF'
+      'career': '#4ECDC4',
+      'finance': '#45B7D1',
+      'health': '#FF6B6B',
+      'family': '#96CEB4',
+      'relationship': '#FFEEAD',
+      'spirituality': '#D4A5A5',
+      'recreation': '#9B9B9B',
+      'environment': '#A8E6CF'
     } as const;
     return colors[category] || '#666666';
   };
@@ -191,7 +196,7 @@ export default function YearlyProgress() {
               y1={PADDING}
               x2={PADDING}
               y2={CHART_HEIGHT - PADDING}
-              stroke="#3f464c"
+              stroke="#E0E0E0"
               strokeWidth="1"
             />
             {/* X軸 */}
@@ -200,7 +205,7 @@ export default function YearlyProgress() {
               y1={CHART_HEIGHT - PADDING}
               x2={CHART_WIDTH - PADDING}
               y2={CHART_HEIGHT - PADDING}
-              stroke="#3f464c"
+              stroke="#E0E0E0"
               strokeWidth="1"
             />
 
@@ -260,6 +265,10 @@ export default function YearlyProgress() {
                 <Text style={styles.legendText}>{category}</Text>
               </View>
             ))}
+            <View style={styles.legendItem}>
+              <View style={[styles.legendColor, { backgroundColor: '#fff', borderWidth: 2, borderColor: '#4A90E2' }]} />
+              <Text style={styles.legendText}>平均達成率</Text>
+            </View>
           </View>
         </View>
 
@@ -280,7 +289,7 @@ export default function YearlyProgress() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#25292e',
+    backgroundColor: '#FFFFFF',
   },
   content: {
     padding: 16,
@@ -318,7 +327,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   chartSection: {
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
@@ -330,7 +339,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#3f464c',
+    borderTopColor: '#E0E0E0',
   },
   legendItem: {
     flexDirection: 'row',
@@ -345,18 +354,18 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   legendText: {
-    color: '#fff',
+    color: '#333333',
     fontSize: 12,
   },
   goalsContainer: {
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333333',
     marginBottom: 16,
   },
   goalItem: {
@@ -369,19 +378,19 @@ const styles = StyleSheet.create({
   },
   goalText: {
     fontSize: 14,
-    color: '#fff',
+    color: '#333333',
     lineHeight: 20,
   },
   averageSection: {
     marginBottom: 24,
     padding: 16,
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     alignItems: 'center',
   },
   averageLabel: {
     fontSize: 14,
-    color: '#999',
+    color: '#666666',
     marginBottom: 8,
   },
   averageValue: {

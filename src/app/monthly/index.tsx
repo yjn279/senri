@@ -27,14 +27,14 @@ export default function MonthlyProgress() {
   const loadData = async () => {
     // 仮の月間目標データ
     const mockMonthlyGoals = [
-      { category: 'Health', goal: '週3回以上のジム通い' },
-      { category: 'Career', goal: 'オンライン講座の修了' },
-      { category: 'Finance', goal: '月の支出を10%削減' },
-      { category: 'Family', goal: '週末の家族行事を計画' },
-      { category: 'Social', goal: '友人との定期的な交流' },
-      { category: 'Personal Growth', goal: '新しい資格の取得' },
-      { category: 'Recreation', goal: '新しい趣味を始める' },
-      { category: 'Spirituality', goal: 'マインドフルネスの習慣化' }
+      { category: 'career', goal: 'オンライン講座の修了' },
+      { category: 'finance', goal: '月の支出を10%削減' },
+      { category: 'health', goal: '週3回以上のジム通い' },
+      { category: 'family', goal: '週末の家族行事を計画' },
+      { category: 'relationship', goal: '友人との定期的な交流' },
+      { category: 'spirituality', goal: 'マインドフルネスの習慣化' },
+      { category: 'recreation', goal: '新しい趣味を始める' },
+      { category: 'environment', goal: '環境に配慮した生活習慣の確立' }
     ];
     setMonthlyGoals(mockMonthlyGoals);
     
@@ -68,7 +68,7 @@ export default function MonthlyProgress() {
         key={`weekday-${index}`}
         x={PADDING + CELL_SIZE * index + CELL_SIZE / 2}
         y={PADDING}
-        fill="#fff"
+        fill="#333333"
         fontSize="12"
         textAnchor="middle"
         alignmentBaseline="middle"
@@ -97,7 +97,7 @@ export default function MonthlyProgress() {
           <SvgText
             x={PADDING + col * CELL_SIZE + CELL_SIZE / 2}
             y={PADDING * 2 + row * CELL_SIZE + CELL_SIZE / 2}
-            fill="#fff"
+            fill="#333333"
             fontSize="10"
             textAnchor="middle"
             alignmentBaseline="middle"
@@ -143,6 +143,20 @@ export default function MonthlyProgress() {
 
         <View style={styles.calendarContainer}>
           {renderCalendar()}
+          
+          <View style={styles.legendContainer}>
+            {[0, 25, 50, 75, 100].map((value) => (
+              <View key={value} style={styles.legendItem}>
+                <View 
+                  style={[
+                    styles.legendColor,
+                    { backgroundColor: '#4A90E2', opacity: value / 100 }
+                  ]} 
+                />
+                <Text style={styles.legendText}>{value}%</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <View style={styles.goalsContainer}>
@@ -162,7 +176,7 @@ export default function MonthlyProgress() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#25292e',
+    backgroundColor: '#FFFFFF',
   },
   content: {
     padding: 16,
@@ -170,30 +184,30 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 16,
     padding: 16,
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333333',
     marginBottom: 8,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#999',
+    color: '#666666',
     lineHeight: 20,
   },
   averageSection: {
     marginBottom: 24,
     padding: 16,
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     alignItems: 'center',
   },
   averageLabel: {
     fontSize: 14,
-    color: '#999',
+    color: '#666666',
     marginBottom: 8,
   },
   averageValue: {
@@ -202,20 +216,20 @@ const styles = StyleSheet.create({
     color: '#4A90E2',
   },
   calendarContainer: {
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
   },
   goalsContainer: {
-    backgroundColor: '#2f353a',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333333',
     marginBottom: 16,
   },
   goalItem: {
@@ -228,7 +242,30 @@ const styles = StyleSheet.create({
   },
   goalText: {
     fontSize: 14,
-    color: '#fff',
+    color: '#333333',
     lineHeight: 20,
+  },
+  legendContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  legendColor: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  legendText: {
+    color: '#333333',
+    fontSize: 12,
   },
 }); 
