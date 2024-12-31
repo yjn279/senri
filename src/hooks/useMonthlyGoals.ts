@@ -1,14 +1,15 @@
+import { startOfWeek } from 'date-fns';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Categories } from '../lib/enums';
-import { Category, DailyGoal } from '../lib/types';
+import { Category, MonthlyGoal } from '../lib/types';
 
-export const useDailyGoals = (start: Date, end: Date) => {
-  const [goals, setGoals] = useState<DailyGoal[]>([]);
+export const useMonthlyGoals = () => {
+  const [goals, setGoals] = useState<MonthlyGoal[]>([]);
   const [error, setError] = useState<Error | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 今日の目標の取得
+  // 今月の目標の取得
   const fetchGoals = async () => {
     try {
       // ローディング
@@ -25,18 +26,15 @@ export const useDailyGoals = (start: Date, end: Date) => {
 
       // データの取得
       const { data, error } = await supabase
-        .from('daily_goals')
+        .from('monthly_goals')
         .select(`
           *,
           life_goals!inner ( userId, category ),
-          yearly_goals!inner ( year ),
-          monthly_goals!inner ( month, title )
+          yearly_goals!inner ( year )
         `)
         .eq('life_goals.userId', user.id)
         .eq('yearly_goals.year', year)
-        .eq('monthly_goals.month', month)
-        // .gte('day', start.getDate())
-        .lt('day', end.getDate());
+        .eq('month', month)
 
       // エラーハンドリング
       if (error) throw error;
@@ -69,21 +67,9 @@ export const useDailyGoals = (start: Date, end: Date) => {
     }
   };
 
-  // 今日の目標の達成
-  const handleGoal = async (id: string) => {
-    const { error } = await supabase
-      .from('daily_goals')
-      .update({ completed: !goals.find(goal => goal.id === id)?.completed })
-      .eq('id', id)
-
-    if (error) throw error;
-
-    fetchGoals();
-  };
-
   useEffect(() => {
     fetchGoals();
   }, []);
 
-  return { goals, handleGoal, error, loading };
+  return { goals, error, loading };
 }; 

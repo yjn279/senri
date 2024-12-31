@@ -1,8 +1,8 @@
-import { format } from 'date-fns';
+import { format, startOfWeek } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { Stack, Tabs } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { ThemeProvider, DefaultTheme } from '@react-navigation/native';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { 
   CircleCheckBig,
   ChartBar, 
@@ -81,7 +81,7 @@ export default function RootLayout() {
         <Tabs.Screen
           name="weekly/index"
           options={{
-            title: '今週の目標',
+            title: format(startOfWeek(new Date()), 'M月d日（E）週の目標', { locale: ja }),
             tabBarLabel: '週間',
             tabBarIcon: ({ color, size }) => (
               <ChartBar size={size} color={color} />

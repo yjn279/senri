@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Categories, CategoryColors } from '../lib/enums';
 import { Category, DailyGoal } from '../lib/types';
 
-export const useDailyProgress = (goals: DailyGoal[]) => {
+export const useProgress = (goals: DailyGoal[]) => {
   const [progress, setProgress] = useState<number>(0);
   const [progressList, setProgressList] = useState<Array<{
     value: number,
@@ -35,7 +35,7 @@ export const useDailyProgress = (goals: DailyGoal[]) => {
     }).filter(category => category !== null);
 
     // 平均達成率
-    const completed = progressList.reduce((completed, data) => completed + data.value, 0);
+    const completed = progressList.reduce((completed, progress) => completed + progress.value, 0);
     const averageProgress = Math.round(completed * 100);
 
     // 未達成

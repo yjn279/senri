@@ -1,5 +1,7 @@
 import { Categories } from "./enums";
 
+export type Category = keyof typeof Categories;
+
 export type DailyGoal =  {
   id: string;
   completed: boolean;
@@ -19,4 +21,17 @@ export type DailyGoal =  {
   updated: string;
 }
 
-export type Category = keyof typeof Categories;
+export type MonthlyGoal =  {
+  id: string;
+  month: number;
+  title: string;
+  yearly_goals: {
+    year: number;
+  } | null;
+  life_goals: {
+    userId: string;
+    category: string;
+  } | null;
+  created: string;
+  updated: string;
+}

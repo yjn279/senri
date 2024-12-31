@@ -7,16 +7,19 @@ import {
   Dimensions 
 } from 'react-native';
 import { Pie, PolarChart } from 'victory-native';
-import { useDailyGoals } from '../hooks/useDailyGoals';
-import { useDailyProgress } from '../hooks/useDailyProgress';
-import { Categories, CategoryColors } from '../lib/enums';
-import { Category } from '../lib/types';
+import { useDailyGoals } from '@/src/hooks/useDailyGoals';
+import { useProgress } from '@/src/hooks/useProgress';
+import { Categories, CategoryColors } from '@/src/lib/enums';
+import { Category } from '@/src/lib/types';
 
 const { width } = Dimensions.get('window');
+const start = new Date();
+const end = new Date();
+end.setDate(end.getDate() + 1);
 
-export default function DailyProgress() {
-  const { goals, handleGoal } = useDailyGoals();
-  const { progress, progressList } = useDailyProgress(goals);
+export default function DailyIndex() {
+  const { goals, handleGoal } = useDailyGoals(start, end);
+  const { progress, progressList } = useProgress(goals);
 
   return (
     <ScrollView style={styles.container}>
@@ -25,8 +28,8 @@ export default function DailyProgress() {
         {/* チャート */}
         <View style={styles.chartSection}>
           <View style={styles.chartContainer}>
-            <View style={styles.pieChartWrapper}>
-              <View style={styles.pieChartContainer}>
+            <View style={styles.chartWrapper}>
+              <View style={styles.chartSubContainer}>
                 <PolarChart
                   data={progressList}
                   labelKey={"label"}
@@ -39,28 +42,30 @@ export default function DailyProgress() {
                   />
                 </PolarChart>
                 <View style={styles.progressOverlay}>
-                  <Text style={styles.progressOverlayLabel}>達成率</Text>
-                  <Text style={styles.progressOverlayValue}>{progress}%</Text>
+                  <Text style={styles.progressOverlayLabel}>スコア</Text>
+                  <Text style={styles.progressOverlayValue}>{progress}</Text>
                 </View>
               </View>
             </View>
           </View>
           <View style={styles.legendContainer}>
-            {progressList.map((progress) => {
+            {Object.keys(CategoryColors).map((category) => {
               // 未達成の判例は表示しない
-              if (progress.label === Categories.remaining) {
+              if (category === 'remaining') {
                 return null
               }
 
               return (
-                <View key={progress.label} style={styles.legendItem}>
+                <View key={category} style={styles.legendItem}>
                   <View 
-                  style={[
-                    styles.legendColor,
-                    { backgroundColor: progress.color }
-                  ]} 
-                />
-                <Text style={styles.legendText}>{progress.label}</Text>
+                    style={[
+                      styles.legendColor,
+                      { backgroundColor: CategoryColors[category as Category] }
+                    ]} 
+                  />
+                  <Text style={styles.legendText}>
+                    {Categories[category as Category]}
+                  </Text>
                 </View>
               )
             })}
@@ -127,34 +132,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
     borderRadius: 12,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 8,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#666666',
-    lineHeight: 20,
-  },
-  averageSection: {
-    marginBottom: 24,
-    padding: 16,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  averageLabel: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 8,
-  },
-  averageValue: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#4A90E2',
-  },
   chartSection: {
     backgroundColor: '#F5F5F5',
     borderRadius: 12,
@@ -166,12 +143,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     justifyContent: 'center',
   },
-  pieChartWrapper: {
+  chartWrapper: {
     width: width - 64,
     height: width - 64,
     alignSelf: 'center',
   },
-  pieChartContainer: {
+  chartSubContainer: {
     position: 'relative',
     width: '100%',
     height: '100%',
@@ -201,19 +178,10 @@ const styles = StyleSheet.create({
     color: '#333333',
     fontSize: 12,
   },
-  progressText: {
-    color: '#999',
-  },
   tasksContainer: {
     backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 16,
   },
   taskItem: {
     flexDirection: 'row',
@@ -250,16 +218,6 @@ const styles = StyleSheet.create({
   taskCompleted: {
     textDecorationLine: 'line-through',
     color: '#999999',
-  },
-  tooltip: {
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    padding: 8,
-    borderRadius: 4,
-    marginBottom: 4,
-  },
-  tooltipText: {
-    color: '#fff',
-    fontSize: 12,
   },
   progressOverlay: {
     position: 'absolute',

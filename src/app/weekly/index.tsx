@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { endOfWeek, startOfWeek } from 'date-fns';
 import { 
   View, 
   Text, 
@@ -6,187 +6,130 @@ import {
   ScrollView,
   Dimensions 
 } from 'react-native';
-import Svg, { Rect, Text as SvgText } from 'react-native-svg';
-import { getGoals, getProgress } from '../../utils/storage';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns';
-import { ja } from 'date-fns/locale';
+import { CartesianChart, StackedBar } from 'victory-native';
+import { useFont } from "@shopify/react-native-skia";
+import { useDailyGoals } from '@/src/hooks/useDailyGoals';
+import { useMonthlyGoals } from '@/src/hooks/useMonthlyGoals';
+import { useWeeklyProgress } from '@/src/hooks/useWeeklyProgress';
+import { Categories, CategoryColors } from '@/src/lib/enums';
+import { Category } from '@/src/lib/types';
 
 const { width } = Dimensions.get('window');
-const CHART_WIDTH = width - 80;
-const CHART_HEIGHT = 240;
-const CHART_PADDING = 20;
-const BAR_HEIGHT = 24;
-const BAR_MARGIN = 8;
+const start = startOfWeek(new Date());
+const end = endOfWeek(new Date());
 
-export default function WeeklyProgress() {
-  const [weeklyGoals, setWeeklyGoals] = useState<any[]>([]);
-  const [progressData, setProgressData] = useState<any[]>([]);
-  const [currentDate] = useState(new Date());
-
-  const categories = [
-    'career',
-    'finance',
-    'health',
-    'family',
-    'relationship',
-    'spirituality',
-    'recreation',
-    'environment',
-  ] as const;
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    // 仮の週間目標データ
-    const mockWeeklyGoals = [
-      { category: 'Health', goal: '毎日30分のジョギング' },
-      { category: 'Career', goal: '新しい技術の学習を3時間' },
-      { category: 'Finance', goal: '支出を記録する' },
-      { category: 'Family', goal: '家族との夕食を3回' },
-      { category: 'Social', goal: '友人とビデオ通話' },
-      { category: 'Personal Growth', goal: '本を1冊読む' },
-      { category: 'Recreation', goal: '趣味の時間を確保' },
-      { category: 'Spirituality', goal: '毎朝10分の瞑想' }
-    ];
-    setWeeklyGoals(mockWeeklyGoals);
-    
-    // 1週間分の進捗データを生成
-    const start = startOfWeek(currentDate, { locale: ja });
-    const end = endOfWeek(currentDate, { locale: ja });
-    const days = eachDayOfInterval({ start, end });
-    
-    const mockData = days.map(day => ({
-      date: day,
-      progress: categories.map(category => ({
-        category,
-        progress: Math.floor(Math.random() * 100)
-      }))
-    }));
-    
-    setProgressData(mockData);
-  };
-
-  const getProgressColor = (category: typeof categories[number]) => {
-    const colors = {
-      'career': '#4ECDC4',
-      'finance': '#45B7D1',
-      'health': '#FF6B6B',
-      'family': '#96CEB4',
-      'relationship': '#FFEEAD',
-      'spirituality': '#D4A5A5',
-      'recreation': '#9B9B9B',
-      'environment': '#A8E6CF'
-    } as const;
-    return colors[category] || '#666666';
-  };
-
-  const getWeekRange = () => {
-    const start = startOfWeek(currentDate, { locale: ja });
-    const end = endOfWeek(currentDate, { locale: ja });
-    return `${format(start, 'M/d')} 〜 ${format(end, 'M/d')}`;
-  };
-
-  const renderStackedBars = () => {
-    return progressData.map((dayData, dayIndex) => {
-      let accumulatedWidth = 0;
-      const totalWidth = CHART_WIDTH - CHART_PADDING * 2;
-      const y = CHART_PADDING + (BAR_HEIGHT + BAR_MARGIN) * dayIndex;
-
-      const dayLabel = (
-        <SvgText
-          key={`label-${dayIndex}`}
-          x={CHART_PADDING - 8}
-          y={y + BAR_HEIGHT / 2}
-          fill="#333333"
-          fontSize="12"
-          textAnchor="end"
-          alignmentBaseline="middle"
-        >
-          {format(dayData.date, 'E', { locale: ja })}
-        </SvgText>
-      );
-
-      const segments = dayData.progress.map((data) => {
-        const width = (data.progress / 100) * totalWidth;
-        const x = CHART_PADDING + accumulatedWidth;
-        const segment = (
-          <Rect
-            key={`${dayIndex}-${data.category}`}
-            x={x}
-            y={y}
-            width={width}
-            height={BAR_HEIGHT}
-            fill={getProgressColor(data.category)}
-            opacity={0.8}
-          />
-        );
-        accumulatedWidth += width;
-        return segment;
-      });
-
-      return [dayLabel, ...segments];
-    });
-  };
-
-  const getWeeklyAverage = () => {
-    if (progressData.length === 0) return 0;
-    const totalProgress = progressData.reduce((acc, day) => {
-      const dayAverage = day.progress.reduce((sum, curr) => sum + curr.progress, 0) / categories.length;
-      return acc + dayAverage;
-    }, 0);
-    return Math.round(totalProgress / progressData.length);
-  };
+export default function WeeklyIndex() {
+  const { goals: dailyGoals } = useDailyGoals(start, end);
+  const { goals: monthlyGoals } = useMonthlyGoals();
+  const { progress, progressList } = useWeeklyProgress(dailyGoals);
+  const font = useFont(require("../../assets/fonts/SpaceMono-Regular.ttf"), 12);
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>
-            {getWeekRange()}の進捗
-          </Text>
-          <Text style={styles.headerSubtitle}>
-            カテゴリーごとの週間達成率を確認できます
-          </Text>
-        </View>
-
-        <View style={styles.averageSection}>
-          <Text style={styles.averageLabel}>総合達成率</Text>
-          <Text style={styles.averageValue}>{getWeeklyAverage()}%</Text>
-        </View>
-
+        
+        {/* チャート */}
         <View style={styles.chartSection}>
+          <View style={styles.progressContainer}>
+            <Text style={styles.progressLabel}>スコア</Text>
+            <Text style={styles.progressValue}>{progress}</Text>
+          </View>
           <View style={styles.chartContainer}>
-            <Svg width={CHART_WIDTH} height={(BAR_HEIGHT + BAR_MARGIN) * 7 + CHART_PADDING * 2}>
-              {renderStackedBars()}
-            </Svg>
+            <View style={styles.chartWrapper}>
+              <View style={styles.chartSubContainer}>
+                {progressList.length > 0 && (
+                  <CartesianChart
+                    data={progressList}
+                    xKey="day"
+                    yKeys={[
+                      'career',
+                      'finance',
+                      'health',
+                      'family',
+                      'relationship',
+                      'spirituality',
+                      'recreation',
+                      'environment',
+                    ]}
+                    axisOptions={{
+                      font: font,
+                      formatXLabel: (value) => value,
+                    }}
+                    domain={{ y: [0, 1] }}
+                  >
+                    {({ points, chartBounds }) => {
+                      const categoryPoints = [
+                        points.career,
+                        points.finance,
+                        points.health,
+                        points.family,
+                        points.relationship,
+                        points.spirituality,
+                        points.recreation,
+                        points.environment,
+                      ];
+
+                      return (
+                        <StackedBar
+                          chartBounds={chartBounds}
+                          colors={Object.values(CategoryColors).filter(
+                            (_, index) => index < categoryPoints.length
+                          )}
+                          points={categoryPoints}
+                        />
+                      );
+                    }}
+                  </CartesianChart>
+                )}
+              </View>
+            </View>
           </View>
           <View style={styles.legendContainer}>
-            {categories.map((category) => (
-              <View key={category} style={styles.legendItem}>
-                <View 
-                  style={[
-                    styles.legendColor,
-                    { backgroundColor: getProgressColor(category) }
-                  ]} 
-                />
-                <Text style={styles.legendText}>
-                  {category}
-                </Text>
-              </View>
-            ))}
+            {Object.keys(CategoryColors).map((category) => {
+              // 未達成の判例は表示しない
+              if (category === 'remaining') {
+                return null
+              }
+
+              return (
+                <View key={category} style={styles.legendItem}>
+                  <View 
+                    style={[
+                      styles.legendColor,
+                      { backgroundColor: CategoryColors[category as Category] }
+                    ]} 
+                  />
+                  <Text style={styles.legendText}>
+                    {Categories[category as Category]}
+                  </Text>
+                </View>
+              )
+            })}
           </View>
         </View>
-
-        <View style={styles.goalsContainer}>
-          <Text style={styles.sectionTitle}>週間目標</Text>
-          {weeklyGoals.map((goal, index) => (
-            <View key={index} style={styles.goalItem}>
-              <Text style={styles.goalCategory}>{goal.category}</Text>
-              <Text style={styles.goalText}>{goal.goal}</Text>
-            </View>
-          ))}
+        
+        {/* 目標一覧 */}
+        <View style={styles.tasksContainer}>
+          {monthlyGoals.map((goal) => {
+            const category = goal.life_goals?.category as Category
+            const color = CategoryColors[category]
+            
+            return (
+              <View key={goal.id} style={styles.taskItem}>
+                <View style={styles.taskContent}>
+                  <Text style={[
+                    styles.taskCategory,
+                    { color: color }
+                  ]}>
+                    {category}
+                  </Text>
+                  <Text style={styles.taskTitle}>
+                    {goal.title}
+                  </Text>
+                </View>
+              </View>
+            )
+          })}
         </View>
       </View>
     </ScrollView>
@@ -207,34 +150,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
     borderRadius: 12,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 8,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#666666',
-    lineHeight: 20,
-  },
-  averageSection: {
-    marginBottom: 24,
-    padding: 16,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  averageLabel: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 8,
-  },
-  averageValue: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#4A90E2',
-  },
   chartSection: {
     backgroundColor: '#F5F5F5',
     borderRadius: 12,
@@ -242,12 +157,28 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   chartContainer: {
-    marginBottom: 16,
+    marginVertical: 16,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+  },
+  chartWrapper: {
+    width: width - 64,
+    height: width - 64,
+    alignSelf: 'center',
+  },
+  chartSubContainer: {
+    position: 'relative',
+    width: '100%',
+    height: '100%',
   },
   legendContainer: {
     width: '100%',
     flexDirection: 'row',
     flexWrap: 'wrap',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
   },
   legendItem: {
     flexDirection: 'row',
@@ -265,31 +196,63 @@ const styles = StyleSheet.create({
     color: '#333333',
     fontSize: 12,
   },
-  progressText: {
-    color: '#999',
-  },
-  goalsContainer: {
+  tasksContainer: {
     backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 16,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 16,
+  taskItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
   },
-  goalItem: {
-    marginBottom: 16,
+  taskCheckbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  goalCategory: {
-    fontSize: 16,
-    color: '#4A90E2',
+  taskCheckboxInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  taskContent: {
+    flex: 1,
+  },
+  taskCategory: {
+    fontSize: 12,
     marginBottom: 4,
   },
-  goalText: {
+  taskTitle: {
     fontSize: 14,
     color: '#333333',
-    lineHeight: 20,
+  },
+  taskCompleted: {
+    textDecorationLine: 'line-through',
+    color: '#999999',
+  },
+  progressContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  progressValue: {
+    fontSize: 60,
+    fontWeight: 'bold',
+    color: '#333333',
+  },
+  progressLabel: {
+    fontSize: 24,
+    color: '#666666',
   },
 }); 
