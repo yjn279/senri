@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -7,179 +6,65 @@ import {
   TouchableOpacity,
   Dimensions 
 } from 'react-native';
-import { getGoals, getProgress } from '../utils/storage';
-import { format } from 'date-fns';
-import { ja } from 'date-fns/locale';
-import Svg, { Rect, Text as SvgText } from 'react-native-svg';
+import { Pie, PolarChart } from 'victory-native';
+import { useDailyGoals } from '../hooks/useDailyGoals';
+import { useDailyProgress } from '../hooks/useDailyProgress';
 
 const { width } = Dimensions.get('window');
-const CHART_WIDTH = width - 80;
-const CHART_HEIGHT = 240;
 const CHART_PADDING = 20;
 
 export default function DailyProgress() {
-  const [goals, setGoals] = useState<any[]>([]);
-  const [progressData, setProgressData] = useState<any[]>([]);
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [currentDate] = useState(new Date());
-
-  const categories = [
-    'career',
-    'finance',
-    'health',
-    'family',
-    'relationship',
-    'spirituality',
-    'recreation',
-    'environment',
-  ] as const;
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    const savedGoals = await getGoals();
-    const savedProgress = await getProgress();
-    
-    setGoals(savedGoals);
-    
-    // 仮のデータを生成（実際のアプリでは保存されたデータを使用）
-    const mockProgressData = categories.map(category => ({
-      category,
-      progress: Math.floor(Math.random() * 100)
-    }));
-    
-    setProgressData(mockProgressData);
-
-    // 仮のタスクデータを生成
-    const mockTasks = categories.map(category => ({
-      id: category,
-      category,
-      title: `${category}の今日のタスク`,
-      completed: Math.random() > 0.5
-    }));
-
-    setTasks(mockTasks);
-  };
-
-  const getProgressColor = (category: typeof categories[number]) => {
-    const colors = {
-      'career': '#4ECDC4',
-      'finance': '#45B7D1',
-      'health': '#FF6B6B',
-      'family': '#96CEB4',
-      'relationship': '#FFEEAD',
-      'spirituality': '#D4A5A5',
-      'recreation': '#9B9B9B',
-      'environment': '#A8E6CF'
-    } as const;
-    return colors[category] || '#666666';
-  };
-
-  const toggleTask = (taskId: string) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId 
-        ? { ...task, completed: !task.completed }
-        : task
-    ));
-  };
-
-  const renderStackedBar = () => {
-    let accumulatedWidth = 0;
-    const totalWidth = CHART_WIDTH - CHART_PADDING * 2;
-    const barHeight = 24;
-
-    return progressData.map((data) => {
-      const width = (data.progress / 100) * totalWidth;
-      const x = CHART_PADDING + accumulatedWidth;
-      const segment = (
-        <Rect
-          key={data.category}
-          x={x}
-          y={CHART_PADDING}
-          width={width}
-          height={barHeight}
-          fill={getProgressColor(data.category)}
-          opacity={0.8}
-        />
-      );
-      accumulatedWidth += width;
-      return segment;
-    });
-  };
-
-  const getDailyAverage = () => {
-    if (progressData.length === 0) return 0;
-    return Math.round(
-      progressData.reduce((acc, curr) => acc + curr.progress, 0) / 
-      progressData.length
-    );
-  };
+  const { goals, handleGoal } = useDailyGoals();
+  const { progress, progressList } = useDailyProgress(goals);
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>
-            {format(currentDate, 'M月d日（E）', { locale: ja })}
-          </Text>
-          <Text style={styles.headerSubtitle}>
-            今日の達成状況を確認できます
-          </Text>
-        </View>
 
-        <View style={styles.averageSection}>
-          <Text style={styles.averageLabel}>総合達成率</Text>
-          <Text style={styles.averageValue}>{getDailyAverage()}%</Text>
-        </View>
-
+        {/* チャート */}
         <View style={styles.chartSection}>
           <View style={styles.chartContainer}>
-            <Svg width={CHART_WIDTH} height={CHART_HEIGHT / 4}>
-              {renderStackedBar()}
-            </Svg>
-          </View>
-          <View style={styles.legendContainer}>
-            {categories.map((category) => (
-              <View key={category} style={styles.legendItem}>
-                <View 
-                  style={[
-                    styles.legendColor,
-                    { backgroundColor: getProgressColor(category) }
-                  ]} 
-                />
-                <Text style={styles.legendText}>
-                  {category}
-                  <Text style={styles.progressText}>
-                    {' '}({progressData.find(d => d.category === category)?.progress || 0}%)
-                  </Text>
-                </Text>
+            <View style={styles.pieChartWrapper}>
+              <View style={styles.pieChartContainer}>
+                <PolarChart
+                  data={progressList}
+                  labelKey={"label"}
+                  valueKey={"value"}
+                  colorKey={"color"}
+                >
+                  <Pie.Chart
+                    innerRadius={'75%'}
+                    startAngle={-90}
+                  />
+                </PolarChart>
+                <View style={styles.progressOverlay}>
+                  <Text style={styles.progressOverlayValue}>{progress}%</Text>
+                </View>
               </View>
-            ))}
+            </View>
           </View>
         </View>
 
+        {/* 目標一覧 */}
         <View style={styles.tasksContainer}>
-          <Text style={styles.sectionTitle}>本日のタスク</Text>
-          {tasks.map((task) => (
+          {goals.map((goal) => (
             <TouchableOpacity
-              key={task.id}
+              key={goal.id}
               style={styles.taskItem}
-              onPress={() => toggleTask(task.id)}
+              onPress={() => handleGoal(goal.id)}
             >
               <View style={styles.taskCheckbox}>
-                {task.completed && (
+                {goal.completed && (
                   <View style={styles.taskCheckboxInner} />
                 )}
               </View>
               <View style={styles.taskContent}>
-                <Text style={styles.taskCategory}>{task.category}</Text>
+                <Text style={styles.taskCategory}>{goal.life_goals?.category}</Text>
                 <Text style={[
                   styles.taskTitle,
-                  task.completed && styles.taskCompleted
+                  goal.completed && styles.taskCompleted
                 ]}>
-                  {task.title}
+                  {goal.monthly_goals?.title}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -239,7 +124,19 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   chartContainer: {
-    marginBottom: 16,
+    marginVertical: 16,
+    paddingHorizontal: CHART_PADDING,
+    justifyContent: 'center',
+  },
+  pieChartWrapper: {
+    width: width - 64,
+    height: width - 64,
+    alignSelf: 'center',
+  },
+  pieChartContainer: {
+    position: 'relative',
+    width: '100%',
+    height: '100%',
   },
   legendContainer: {
     width: '100%',
@@ -314,5 +211,29 @@ const styles = StyleSheet.create({
   taskCompleted: {
     textDecorationLine: 'line-through',
     color: '#666',
+  },
+  tooltip: {
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    padding: 8,
+    borderRadius: 4,
+    marginBottom: 4,
+  },
+  tooltipText: {
+    color: '#fff',
+    fontSize: 12,
+  },
+  progressOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  progressOverlayValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#fff',
   },
 }); 

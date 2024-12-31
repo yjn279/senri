@@ -13,7 +13,6 @@ import Svg, {
   Path,
   Circle
 } from 'react-native-svg';
-import { getGoals, getProgress } from '../../utils/storage';
 
 const { width } = Dimensions.get('window');
 const CHART_WIDTH = width - 64;

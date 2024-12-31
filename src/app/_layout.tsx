@@ -1,3 +1,5 @@
+import { format } from 'date-fns';
+import { ja } from 'date-fns/locale';
 import { Stack, Tabs } from 'expo-router';
 import { ThemeProvider, DefaultTheme } from '@react-navigation/native';
 import { View, StyleSheet } from 'react-native';
@@ -69,7 +71,8 @@ export default function RootLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: '今日',
+            title: format(new Date(), 'M月d日（E）の目標', { locale: ja }),
+            tabBarLabel: '今日',
             tabBarIcon: ({ color, size }) => (
               <CircleCheckBig size={size} color={color} />
             ),
@@ -78,7 +81,8 @@ export default function RootLayout() {
         <Tabs.Screen
           name="weekly/index"
           options={{
-            title: '週間',
+            title: '今週の目標',
+            tabBarLabel: '週間',
             tabBarIcon: ({ color, size }) => (
               <ChartBar size={size} color={color} />
             ),
@@ -87,7 +91,8 @@ export default function RootLayout() {
         <Tabs.Screen
           name="monthly/index"
           options={{
-            title: '月間',
+            title: '今月の目標',
+            tabBarLabel: '月間',
             tabBarIcon: ({ color, size }) => (
               <Calendar size={size} color={color} />
             ),
@@ -96,7 +101,8 @@ export default function RootLayout() {
         <Tabs.Screen
           name="yearly/index"
           options={{
-            title: '年間',
+            title: '今年の目標',
+            tabBarLabel: '年間',
             tabBarIcon: ({ color, size }) => (
               <ChartColumn size={size} color={color} />
             ),
@@ -105,7 +111,8 @@ export default function RootLayout() {
         <Tabs.Screen
           name="lifetime/index"
           options={{
-            title: '生涯',
+            title: '生涯の目標',
+            tabBarLabel: '生涯',
             tabBarIcon: ({ color, size }) => (
               <ChartPie size={size} color={color} />
             ),
